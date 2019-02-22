@@ -13,8 +13,7 @@ For instance, running
 
 ``> python evaluate.py --dataset bees_0``
   
-will reproduce all the plots and visualizations from the first sequence of the Bees dataset in plots/. Some
-of these are included in the ICLR submission.
+will reproduce all the plots and visualizations from the first sequence of the Bees dataset in ``plots/``.
 
 
 Please contact Karan Goel ``kgoel <at> cs <dot> stanford <dot> edu`` for questions!
