@@ -7,15 +7,19 @@ Karan Goel and Emma Brunskill
 _ICLR 2019_
 
 Specifically, this repository reproduces experiments with the new evaluation criteria proposed in the paper. 
-The results are reproduced from logged runs of the methods being compared (stored in ``logs/``).
+The results are reproduced from logged runs of the methods being compared.
 
-Install the requirements into your virtual environment using ``pip install -r requirements.txt``.
+#### Usage
 
-Then, reproduce by running   
+(1) Install the requirements into your virtual environment using ``pip install -r requirements.txt``.
+
+(2) Unzip ``logs.zip`` and ``datasets.zip`` which should yield ``logs/`` and `datasets/`. 
+
+Then, reproduce results on the `bees_0` dataset by running   
 
 ``> python evaluate.py --dataset bees_0``
   
-will reproduce all the plots and visualizations from the first sequence of the Bees dataset in ``plots/``. 
+which will reproduce all the plots and visualizations from the first sequence of the Bees dataset in ``plots/``. 
 Run ``python evaluate.py`` to see a list of the available datasets.
 
 
