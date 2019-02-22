@@ -7,7 +7,8 @@ Karan Goel and Emma Brunskill
 _ICLR 2019_
 
 Specifically, this repository reproduces experiments with the new evaluation criteria proposed in the paper. 
-The results are reproduced from logged runs of the methods being compared.
+The results are reproduced from logged runs of the methods being compared, since running them from scratch can be 
+very slow.
 
 #### Usage
 
