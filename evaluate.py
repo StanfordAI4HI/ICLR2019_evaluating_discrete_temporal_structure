@@ -1,23 +1,15 @@
-import os
 import argparse
-import platform
 import datetime
-import numpy as np
-import pandas as pd
+import os
+import platform
 import warnings
+
 import matplotlib
-import seaborn as sns
+
 if not platform.system() == 'Darwin':
     matplotlib.use('agg')
-import matplotlib.pyplot as plt
 from sklearn.metrics import homogeneity_completeness_v_measure, normalized_mutual_info_score, adjusted_rand_score
-from sklearn.metrics.pairwise import pairwise_distances
-from scipy.io import loadmat
-from scipy.stats import kendalltau, spearmanr, weightedtau
-from glob import glob
-from natsort import natsorted
-from matplotlib.cm import get_cmap
-from config import *
+from scipy.stats import spearmanr, weightedtau
 from viz import *
 from metrics import *
 from plot import *
@@ -54,12 +46,11 @@ def generate_eval_dict(gt, pred):
 
 # Both gt and pred are list of lists
 def evaluate_a_prediction(gt, pred):
-
     # Concatenate ground-truth and predictions into a single sequence
     gt_combined, pred_combined = np.concatenate(gt), np.concatenate(pred)
 
     # Make sure they have the same shape
-    assert(gt_combined.shape == pred_combined.shape)
+    assert (gt_combined.shape == pred_combined.shape)
 
     # Generate the evaluation results
     eval_dict = generate_eval_dict(gt_combined, pred_combined)
@@ -68,7 +59,6 @@ def evaluate_a_prediction(gt, pred):
 
 
 def read_single_run(run_path):
-
     # Run path needs to exist (and will always contain a temporal_clusterings.npy file)
     if os.path.exists(run_path + '/temporal_clusterings.npy'):
         # Load the temporal clusterings (each temporal_clusterings.npy file contains multiple repetitions of the method)
@@ -86,7 +76,6 @@ def read_single_run(run_path):
 
 
 def evaluate_single_run(gt, run_path, **kwargs):
-
     # Read in the temporal clustering for the run
     pred = read_single_run(run_path)
 
@@ -232,24 +221,17 @@ def viz_best_runs_across_methods(gt, frame, all_preds, method_list, **kwargs):
 
     # Do all the visualization
     viz_temporal_clusterings(temporal_clusterings, store_path + '_viz_temporal_clusterings', labels=viz_labels)
-    viz_temporal_clusterings_by_segments(gt, temporal_clusterings[1:], store_path + '_viz_temporal_clusterings_by_segments', labels=viz_labels)
-    viz_temporal_clusterings_with_segment_spacing(gt, temporal_clusterings[1:], store_path + '_viz_temporal_clusterings_with_segment_spacing', labels=viz_labels)
-
-
-def ranking_analysis(frame, metrics):
-
-    for metric1 in metrics:
-        for metric2 in metrics:
-            f1 = frame.loc[frame['metric'].isin([metric1])].sort('method')['val'].values
-            f2 = frame.loc[frame['metric'].isin([metric2])].sort('method')['val'].values
-            print((metric1, metric2))
-            print(("WT", weightedtau(f1.flatten(), f2.flatten())))
-            print(("Sp", spearmanr(f1.flatten(), f2.flatten())))
+    viz_temporal_clusterings_by_segments(gt, temporal_clusterings[1:],
+                                         store_path + '_viz_temporal_clusterings_by_segments', labels=viz_labels)
+    viz_temporal_clusterings_with_segment_spacing(gt, temporal_clusterings[1:],
+                                                  store_path + '_viz_temporal_clusterings_with_segment_spacing',
+                                                  labels=viz_labels)
 
 
 # Given a frame, keep only the best run for each method, as measured by metric
 def select_best_run_per_method_by_metric(frame, metric):
-    return frame[frame['run'].isin(frame[frame['val'].isin(frame[frame['metric'] == metric].groupby(['metric', 'method'])['val'].max())]['run'])]
+    return frame[frame['run'].isin(
+        frame[frame['val'].isin(frame[frame['metric'] == metric].groupby(['metric', 'method'])['val'].max())]['run'])]
 
 
 # Given a frame and a metric such that the frame contains only the best run for each method, get the list of methods
@@ -292,47 +274,13 @@ def analyze_best_runs_across_methods_for_metric(gt, frame, metric, all_preds, **
 
     # Restrict the frame to the metric
     restricted_frame = restrict_frame_to_metrics(frame, [metric])
-    print(("Metric %s" % metric))
-    print((restricted_frame))
 
     kwargs['extension'] += '_best_worst_%s' % (metric)
     viz_best_runs_across_methods(gt, frame, all_preds, [worst_method, best_method], **kwargs)
 
 
-# Generate a plot where methods are displayed in a barplot grouped by metrics.
-def barplot_methods_grouped_by_metrics(frame, store_path, method_order, metric_order):
-
-    # Number of methods being plotted
-    n = frame['method'].unique().shape[0]
-
-    # Create the figure
-    _ = plt.figure(figsize=(6, 3))
-
-    # Create the bar plot grouped by metrics
-    ax = sns.barplot(x='metric', y="val", hue="method",
-                     data=frame, palette=sns.color_palette("Blues", n_colors=n),
-                     order=metric_order, hue_order=method_order)
-
-    # TODO: Clean this up
-    ax.set_xticks(list((np.arange(n) - n / 2.) / (n * 1.25) + 0.06) + list((np.arange(n) - n / 2.) / (n * 1.25) + 1.06))
-    ax.set_xticklabels(list(method_order)*2, rotation=90)
-    plt.xlabel('%s                                              %s' % (metric_order[0], metric_order[1]), labelpad=10)
-
-    # Fix the y axis extent and labels
-    plt.ylim([0, 1])
-    plt.ylabel('Score')
-
-    # Remove the legend
-    ax.legend_.remove()
-
-    # Save the plot
-    plt.savefig(store_path, bbox_inches='tight')
-    plt.close()
-
-
 # Generate a plot where methods are displayed in a factorplot grouped by metrics
 def analyze_best_runs_across_method_pairs_by_metrics(frame, metric_list, **kwargs):
-
     # Restrict the frame to only the metrics
     restricted_frame = restrict_frame_to_metrics(frame, metric_list)
 
@@ -344,8 +292,7 @@ def analyze_best_runs_across_method_pairs_by_metrics(frame, metric_list, **kwarg
 
     # Pick out every pair of methods
     for i, m1 in enumerate(kwargs['methods']):
-        for m2 in kwargs['methods'][i+1:]:
-
+        for m2 in kwargs['methods'][i + 1:]:
             # Method list of the pair of methods being considered, in the order we want
             method_list = [method_lookup[m1], method_lookup[m2]]
 
@@ -367,77 +314,47 @@ def analyze_all_methods(gt, **kwargs):
     # Call methods that do analysis
     # Figure out the best runs for every method based on the tss score
     evaluation_frame_best_runs_by_tss_combined = select_best_run_per_method_by_metric(evaluation_frame, 'tss_combined')
-    # print((evaluation_frame_best_runs_by_tss_combined))
 
     # Carry out all the visualization
-    # viz_best_runs_across_methods(gt, evaluation_frame_best_runs_by_tss, all_preds, kwargs['methods'], extension='tss', **kwargs)
-    viz_best_runs_across_methods(gt, evaluation_frame_best_runs_by_tss_combined, all_preds, kwargs['methods'], extension='tss_combined', **kwargs)
+    viz_best_runs_across_methods(gt, evaluation_frame_best_runs_by_tss_combined, all_preds, kwargs['methods'],
+                                 extension='tss_combined', **kwargs)
 
-    # Grab predictions that correspond to the best run for each method
-    # temporal_clusterings = [gt]
-    # for m in kwargs['methods']:
-    #     # Find the name of the best run for this method
-    #     best_run = evaluation_frame_best_runs_by_tss[evaluation_frame_best_runs_by_tss['method'] == method_lookup[m]]['run'].unique()[0]
-    #     # Append the prediction for this run
-    #     temporal_clusterings.append(all_preds[m][best_run])
-
-    # Stack up the predictions to create a single (giant) matrix
-    # temporal_clusterings = np.vstack(temporal_clusterings)
-
-    # Figure out the number of methods
-    # n_methods = len(kwargs['methods'])
-
-    # visualize_many_temporal_clusterings(gt_list=np.vstack(tuple(np.concatenate(gt) for _ in range(n_methods))),
-    #                                                 pred_list=np.vstack(pred_list),
-    #                                                 multiple_time_series=False,
-    #                                                 extension='_default_order',
-    #                                                 labels=[method_lookup[e] for e in kwargs['methods']], **kwargs)
-    #
-    # visualize_many_temporal_clusterings_by_segments(gt_list=np.vstack(tuple(np.concatenate(gt) for _ in range(n_methods))),
-    #                                     pred_list=np.vstack(pred_list),
-    #                                     multiple_time_series=False,
-    #                                     extension='_default_order',
-    #                                     labels=[method_lookup[e] for e in kwargs['methods']], **kwargs)
-
-    print((evaluation_frame_best_runs_by_tss_combined.to_latex()))
+    # Print out the evaluation matrix as a latex table
     latex_df = evaluation_frame_best_runs_by_tss_combined.drop('run', 1)
     latex_df['metric'] = latex_df['metric'].map(metric_lookup)
     latex_df['val'] = latex_df['val'].round(2)
     latex_df = latex_df.pivot_table('val', ['metric'], 'method')
-    print((latex_df))
+    print("\n")
+    print("Latex: Evaluation Matrix")
     print((latex_df.to_latex()))
-
 
     # Scatter plot on varying beta
     for metrics in [['rss_substring', 'tss_combined-0,1', 'tss_combined-0,2', 'tss_combined-0,5',
                      'tss_combined', 'tss_combined-2', 'tss_combined-5', 'tss_combined-10', 'sss_combined'],
                     ['tss_combined-0,1', 'tss_combined', 'tss_combined-10'],
                     ['tss_combined', 'nmi', 'munkres', 'ari']]:
-        ranking_analysis(restrict_frame_to_metrics(evaluation_frame_best_runs_by_tss_combined, metrics), metrics)
         store_path = kwargs['plot_path'] + 'scatterplot_methods_varying_beta/'
         if not os.path.exists(store_path):
             os.makedirs(store_path)
         store_path += 'best_runs_by_%s_metrics_%s' % ('tss_combined', "__".join(metrics))
-        scatterplot_methods_varying_beta(restrict_frame_to_metrics(evaluation_frame_best_runs_by_tss_combined, metrics), store_path, metrics)
-
-
+        scatterplot_methods_varying_beta(restrict_frame_to_metrics(evaluation_frame_best_runs_by_tss_combined, metrics),
+                                         store_path, metrics)
 
     for metric in kwargs['metrics']:
-        analyze_best_runs_across_methods_for_metric(gt, evaluation_frame_best_runs_by_tss_combined, metric, all_preds, extension='tss_combined', **kwargs)
+        analyze_best_runs_across_methods_for_metric(gt, evaluation_frame_best_runs_by_tss_combined, metric, all_preds,
+                                                    extension='tss_combined', **kwargs)
 
     # For each metric pair, analyze and plot
     for metric_pair in [('nmi', 'tss_combined'), ('munkres', 'tss_combined'),
                         ('tss_combined', 'rss_substring'), ('tss_combined', 'lass'), ('tss_combined', 'sss_combined')]:
-        analyze_best_runs_across_methods_for_metric_pair(evaluation_frame_best_runs_by_tss_combined, metric_pair, extension='tss_combined', **kwargs)
+        analyze_best_runs_across_methods_for_metric_pair(evaluation_frame_best_runs_by_tss_combined, metric_pair,
+                                                         extension='tss_combined', **kwargs)
 
     # For each metric combination we analyze and compare all pairs of methods
-    # for metrics in [['tss', 'nmi', 'rss', 'homogeneity', 'sss', 'completeness'], ['munkres', 'tss', 'rss', 'sss']]:
-    for metrics in [['tss_combined', 'rss_substring','sss_combined', 'nmi', 'homogeneity', 'completeness', 'munkres'],
-                    ['tss_combined', 'rss_substring', 'sss_combined', 'nmi', 'homogeneity', 'completeness', 'munkres', 'ari']]:
-        analyze_best_runs_across_method_pairs_by_metrics(evaluation_frame_best_runs_by_tss_combined, metrics, extension='tss_combined', **kwargs)
-
-
-    # methods_sorted_by_name = list(evaluation_frame_best_runs_by_tss.loc[evaluation_frame_best_runs_by_tss['metric'] == 'tss'].sort_values(by=['method'], ascending=True)['method'].values)
+    for metrics in [['tss_combined', 'rss_substring', 'sss_combined', 'nmi',
+                     'homogeneity', 'completeness', 'munkres', 'ari']]:
+        analyze_best_runs_across_method_pairs_by_metrics(evaluation_frame_best_runs_by_tss_combined, metrics,
+                                                         extension='tss_combined', **kwargs)
 
     return evaluation_frame_best_runs_by_tss_combined
 
@@ -445,7 +362,8 @@ def analyze_all_methods(gt, **kwargs):
 if __name__ == '__main__':
     # Set up arg parser
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', type=str, help="Dataset to use.", required=True, choices=['mocap6', 'bees'] + ['bees_%d' % i for i in range(6)])
+    parser.add_argument('--dataset', type=str, help="Dataset to use.", required=True,
+                        choices=['mocap6', 'bees'] + ['bees_%d' % i for i in range(6)])
     parser.add_argument('--seed', type=int, default=42, help='Random seed.')
     parser.add_argument('--log_path', type=str, default='/logs/', help='Relative path to logging directory.')
     parser.add_argument('--plot_path', type=str, default='/plots/', help='Relative path to plotting directory.')

@@ -1,6 +1,8 @@
-import numpy as np
 import platform
+
 import matplotlib
+import numpy as np
+
 if not platform.system() == 'Darwin':
     matplotlib.use('agg')
 from matplotlib.cm import get_cmap
@@ -12,7 +14,7 @@ cmap = get_cmap("jet")
 
 colorings = []
 for i, (name, hex) in enumerate(matplotlib.colors.cnames.items()):
-    colorings.append(np.array(tuple(int(hex.lstrip("#")[i:i+2], 16) for i in (0, 2 ,4)))/255.0)
+    colorings.append(np.array(tuple(int(hex.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))) / 255.0)
 
 colorings = np.array(colorings)
 
@@ -62,5 +64,4 @@ dataset_lookup = {'mocap6': 'Mocap6',
                   'bees_4': 'Bees-5',
                   'bees_5': 'Bees-6'}
 
-inverse_method_lookup = {v:k for k,v in method_lookup.items()}
-
+inverse_method_lookup = {v: k for k, v in method_lookup.items()}
