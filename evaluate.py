@@ -96,7 +96,7 @@ def evaluate_single_run(gt, run_path, **kwargs):
         return eval_dict, pred
 
     # Log and return None if we can't find the run
-    kwargs['logger'].write('>> %s not found.' % run_path)
+    kwargs['logger'].write('>> %s not found.\n' % run_path)
     return None, None
 
 
@@ -198,10 +198,17 @@ def viz_best_runs_across_methods(gt, frame, all_preds, method_list, **kwargs):
     # Grab predictions that correspond to the best run for each method
     temporal_clusterings = [gt]
 
+    # Skip methods we can't find logs for
+    skip_methods = set()
+
     # Loop over the methods
     for m in method_list:
-        # Find the name of the best run for this method
-        best_run = frame[frame['method'] == method_lookup[m]]['run'].unique()[0]
+        try:
+            # Find the name of the best run for this method
+            best_run = frame[frame['method'] == method_lookup[m]]['run'].unique()[0]
+        except IndexError:
+            skip_methods.add(m)
+            continue
         # Relabel the run using the Munkres correspondeces with ground truth
         best_run_pred = relabel_clustering_with_munkres_correspondences(gt, np.concatenate(all_preds[m][best_run]))
         # Append the prediction for this run
@@ -211,7 +218,7 @@ def viz_best_runs_across_methods(gt, frame, all_preds, method_list, **kwargs):
     temporal_clusterings = np.vstack(temporal_clusterings)
 
     # Create labels corresponding to each temporal clustering
-    viz_labels = ['Ground Truth'] + ["Prediction by %s" % method_lookup[m] for m in method_list]
+    viz_labels = ['Ground Truth'] + ["Prediction by %s" % method_lookup[m] for m in method_list if m not in skip_methods]
 
     # Set up paths
     store_path = kwargs['plot_path'] + 'viz_best_runs_across_methods/'
