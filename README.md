@@ -15,7 +15,7 @@ The results are reproduced from logged runs of the methods being compared.
 
 (2) Unzip ``logs.zip`` and ``datasets.zip`` which should yield ``logs/`` and `datasets/`. 
 
-Then, reproduce results on the `bees_0` dataset by running   
+(3) Then, reproduce results on the `bees_0` dataset by running   
 
 ``> python evaluate.py --dataset bees_0``
   
