@@ -1,4 +1,4 @@
-# Experiments for Evaluating Discrete Latent Temporal Structure
+# Evaluating Discrete Latent Temporal Structure
 
 This repository provides code to run experiments from,
  
